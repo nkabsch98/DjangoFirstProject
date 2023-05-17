@@ -1,14 +1,17 @@
+from typing import Any
+from django.db.models.query import QuerySet
 from django.http import HttpResponseRedirect
 # for longer index version: from django.template import loader
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
+from django.views import generic
 
 from .models import Question, Choice
 
 # Create your views here.
 # /polls/
 """
-Longer version:
+First version:
 def index(request):
     latest_question_list = Question.objects.order_by("-pub_date")[:5]
     template = loader.get_template("polls/index.html")
@@ -17,32 +20,51 @@ def index(request):
     }
     return HttpResponse(template.render(context, request))
 
-Shorter version:    
-"""
+Second version:    
+
 def index(request):
     latest_question_list = Question.objects.order_by("-pub_date")[:5]
     context = {"latest_question_list": latest_question_list}
     return render(request, "polls/index.html", context)
+Third (generic) version:
+"""
+class IndexView(generic.ListView):
+    template_name = "polls/index.html"
+    context_object_name = "latest_question_list"
 
+    def get_queryset(self):
+        return Question.objects.order_by("-pub_date")[:5]
+    
 # /polls/id
 """
-Longer version: 
+First version: 
 def detail(request, question_id):
     try:
         question = Question.objects.get(pk=question_id)
     except Question.DoesNotExist:
         raise Http404("Question does not exist, sorry! :(")
     return render(request, "polls/detail.html", {"question": question})
-Shorter version:
-"""
+Second version:
+
 def detail(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
     return render(request, "polls/detail.html", {"question": question})
 
+Third (generic) version:
+"""
+class DetailView(generic.DetailView):
+    model = Question
+    template_name = "polls/detail.html"
+
+class ResultsView(generic.DetailView):
+    model = Question
+    template_name = "polls/results.html"
+"""
 # /polls/id/results/
 def results(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
     return render(request, "polls/results.html", {"question": question})
+"""
 
 # /polls/id/vote/
 def vote(request, question_id):
